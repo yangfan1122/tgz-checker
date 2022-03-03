@@ -20,7 +20,6 @@ function check (directory) {
       const has = contents.some(c => path.extname(fullPath + path.sep + c) === '.tgz')
       if (!has) {
         let content = 'No .tgz in ' + targetDirectory.split(cliPath)[1]
-        logContent += 'adfafa\r\n'
         logContent += content + '\r\n'
         errorLog(content)
       }
