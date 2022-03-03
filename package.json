@@ -1,6 +1,6 @@
 {
   "name": "tgz-checker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "bin": {
     "tgz": "index.js"
   },
+  "homepage": "https://github.com/yangfan1122/tgz-checker",
   "keywords": [],
   "author": "",
   "license": "ISC"
