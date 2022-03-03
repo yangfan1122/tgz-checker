@@ -39,7 +39,7 @@ function errorLog (...message) {
   console.log('[Error]', messageHandler(...message))
 }
 function infoLog (...message) {
-  console.log('[Info', messageHandler(...message))
+  console.log('[Info]', messageHandler(...message))
 }
 function messageHandler (...content) {
   let str = ''
