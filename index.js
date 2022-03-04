@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 const fs = require('fs')
 const path = require('path')
+const packageJson = require('./package.json')
 const cliPath = process.cwd()
 let logContent = ''
 const timestamp = new Date().getTime()
 const logFileName = timestamp + '-tgz_debug.log'
+
+if (process.argv[2] === '--version' || process.argv[2] === '-V') {
+  console.log(packageJson.version)
+  return
+} else if (process.argv[2]) {
+  errorLog('Invalid params.')
+  return
+}
 
 check(cliPath)
 
