@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 const fs = require('fs')
 const path = require('path')
+const utils = require('./utils')
 const packageJson = require('./package.json')
 const cliPath = process.cwd()
 let logContent = ''
 let npmScript = 'npm i ' // npm安装命令
 const timestamp = new Date().getTime()
 const logFileName = timestamp + '-tgz_debug.log'
+let editPackageJSON = false // 编辑包内package.json
 
 if (process.argv[2] === '--version' || process.argv[2] === '-V') {
   console.log(packageJson.version)
   return
+} else if (process.argv[2] === '--edit') {
+  editPackageJSON = true
 } else if (process.argv[2]) {
   errorLog('Invalid params.')
   return
@@ -38,6 +42,8 @@ function check (directory) {
 
       const targetDirectory = fullPath.split(path.basename(fullPath))[0]
       const contents = fs.readdirSync(targetDirectory) // 目标目录内所有文件
+      const packageIndex = contents.indexOf('package.json')
+      contents.splice(packageIndex, 1)
       const hasTgz = contents.some(c => path.extname(fullPath + path.sep + c) === '.tgz')
       if (!hasTgz) {
         let tgzMessage = 'No .tgz in ' + packageName
@@ -47,11 +53,28 @@ function check (directory) {
       } else {
         const hasVersion = contents.some(c => c.indexOf(newest) > -1)
         if (!hasVersion) {
-          // 文件里不包含最新版本
-          const versionMessage = 'No newest(' + newest + ') .tgz in ' + packageName
-          logContent += versionMessage + '\r\n'
-          npmScript += packageName + '@' + newest + ' '
-          errorLog(versionMessage)
+          // tgz文件里没有最新的
+          if (editPackageJSON) {
+            let first
+            let last
+            let newestTgz
+            try {
+              first = contents[0]
+              last = contents[contents.length - 1]
+              newestTgz = utils.compareVersion(first, last) ? first : last
+            } catch (e) {
+              console.warn(e.message)
+            }
+            packageContent['dist-tags']['latest'] = utils.getVersionFromFileName(newestTgz)
+            fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent))
+          } else {
+            // 文件里不包含最新版本
+            const versionMessage = 'No newest(' + newest + ') .tgz in ' + packageName
+            logContent += versionMessage + '\r\n'
+            npmScript += packageName + '@' + newest + ' '
+            errorLog(versionMessage)
+          }
+
         }
       }
     }
