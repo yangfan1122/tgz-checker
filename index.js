@@ -27,17 +27,13 @@ function check (directory) {
     } else if (path.basename(fullPath) === 'package.json') {
       let packageContent = fs.readFileSync(fullPath, 'utf-8') // package.jsn内容
       packageContent = JSON.parse(packageContent)
-      const versions = Object.keys(packageContent.versions) // package.json内所有tgz的版本
-      let newest
       const packageName = packageContent.name // 包名
+      let newest
       try {
         newest = packageContent['dist-tags']['latest']
       } catch (e) {
         errorLog('No "dist-tags.latest" in ' + packageName)
         return
-      }
-      if (versions.length > 0) {
-        newest = versions[versions.length - 1] // 最新tgz的版本号
       }
 
       const targetDirectory = fullPath.split(path.basename(fullPath))[0]
