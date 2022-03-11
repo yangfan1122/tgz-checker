@@ -55,6 +55,7 @@ function check (directory) {
         if (!hasVersion) {
           // tgz文件里没有最新的
           if (editPackageJSON) {
+            // 重写package.json
             let first
             let last
             let newestTgz
@@ -62,11 +63,12 @@ function check (directory) {
               first = contents[0]
               last = contents[contents.length - 1]
               newestTgz = utils.compareVersion(first, last) ? first : last
+              packageContent['dist-tags']['latest'] = utils.getVersionFromFileName(newestTgz)
+              fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent))
             } catch (e) {
-              console.warn(e.message)
+              warnLog(e.message)
             }
-            packageContent['dist-tags']['latest'] = utils.getVersionFromFileName(newestTgz)
-            fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent))
+
           } else {
             // 文件里不包含最新版本
             const versionMessage = 'No newest(' + newest + ') .tgz in ' + packageName
@@ -91,6 +93,9 @@ if (logContent === '') {
 
 function errorLog (...message) {
   console.log('[Error]', messageHandler(...message))
+}
+function warnLog (...message) {
+  console.warn('[Warn]', messageHandler(...message))
 }
 function infoLog (...message) {
   console.log('[Info]', messageHandler(...message))
