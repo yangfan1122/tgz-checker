@@ -5,7 +5,6 @@ const utils = require('./utils')
 const packageJson = require('./package.json')
 const cliPath = process.cwd()
 let logContent = ''
-let npmScript = 'npm i ' // npm安装命令
 const timestamp = new Date().getTime()
 const logFileName = timestamp + '-tgz_debug.log'
 let editPackageJSON = false // 编辑包内package.json
@@ -48,7 +47,6 @@ function check (directory) {
       if (!hasTgz) {
         let tgzMessage = 'No .tgz in ' + packageName
         logContent += tgzMessage + '\r\n'
-        npmScript += packageName + ' '
         errorLog(tgzMessage)
       } else {
         const hasVersion = contents.some(c => c.indexOf(newest) > -1)
@@ -63,7 +61,11 @@ function check (directory) {
               first = contents[0]
               last = contents[contents.length - 1]
               newestTgz = utils.compareVersion(first, last) ? first : last
-              packageContent['dist-tags']['latest'] = utils.getVersionFromFileName(newestTgz)
+              const newestTgzVersion = utils.getVersionFromFileName(newestTgz)
+              const editLog = 'Edit: ' + packageName + ' ' + newest + ' -> ' + newestTgzVersion
+              logContent += editLog + '\r\n'
+              infoLog(editLog)
+              packageContent['dist-tags']['latest'] = newestTgzVersion
               fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent))
             } catch (e) {
               warnLog(e.message)
@@ -73,7 +75,6 @@ function check (directory) {
             // 文件里不包含最新版本
             const versionMessage = 'No newest(' + newest + ') .tgz in ' + packageName
             logContent += versionMessage + '\r\n'
-            npmScript += packageName + '@' + newest + ' '
             errorLog(versionMessage)
           }
 
@@ -88,7 +89,7 @@ if (logContent === '') {
 } else {
   infoLog('A complete log of this run can be found in:')
   infoLog('    ' + cliPath + path.sep + logFileName)
-  fs.writeFileSync('./' + logFileName, logContent + '\r\n\r\n' + npmScript)
+  fs.writeFileSync('./' + logFileName, logContent)
 }
 
 function errorLog (...message) {
