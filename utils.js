@@ -17,7 +17,28 @@ function getVersionFromFileName (fileName) {
   return arr2[arr2.length - 1]
 }
 
+function errorLog (...message) {
+  console.log('[Error]', messageHandler(...message))
+}
+function warnLog (...message) {
+  console.warn('[Warn]', messageHandler(...message))
+}
+function infoLog (...message) {
+  console.log('[Info]', messageHandler(...message))
+}
+function messageHandler (...content) {
+  let str = ''
+  content.forEach(c => {
+    str += typeof c === 'object' ? JSON.stringify(c) : c
+    str += ' '
+  })
+  return str
+}
+
 module.exports = {
   compareVersion,
-  getVersionFromFileName
+  getVersionFromFileName,
+  errorLog,
+  warnLog,
+  infoLog
 }
