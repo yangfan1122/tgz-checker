@@ -5,11 +5,11 @@ const utils = require('./utils')
 const infoLog = utils.infoLog
 const warnLog = utils.warnLog
 const errorLog = utils.errorLog
+const getLogContent = utils.getLogContent
 const edit = require('./edit')
 const editPackage = edit.editPackage
 const packageJson = require('./package.json')
 const cliPath = process.cwd()
-let logContent = ''
 const timestamp = new Date().getTime()
 const logFileName = timestamp + '-tgz_debug.log'
 let editPackageJSON = false // 编辑包内package.json
@@ -35,25 +35,46 @@ function check (directory) {
 
   // 编辑单个包
   if (editPackageName !== '') {
-    editPackage(directory + path.sep + editPackageName + path.sep + 'package.json', editPackageJSON, logContent)
+    let msgObj = editPackage(directory + path.sep + editPackageName + path.sep + 'package.json', editPackageJSON)
+    msgHandler(msgObj)
     return
   }
 
-  // 编辑所有包
+  // 检查/编辑所有包
   for (let key in folders) {
     const fullPath = directory + path.sep + folders[key] // 绝对路径
     if (fs.lstatSync(fullPath).isDirectory()) {
       check(fullPath)
     } else if (path.basename(fullPath) === 'package.json') {
-      editPackage(fullPath, editPackageJSON, logContent)
+      let msgObj = editPackage(fullPath, editPackageJSON)
+      msgHandler(msgObj)
     }
   }
 }
 
-if (logContent === '') {
+function msgHandler (msgObj) {
+  if (msgObj.message === '') {
+    return
+  }
+  switch (msgObj.code) {
+    case -1:
+      errorLog(msgObj.message)
+      break
+    case 0:
+      warnLog(msgObj.message)
+      break
+    case 1:
+      infoLog(msgObj.message)
+      break
+    default:
+      break
+  }
+}
+
+if (getLogContent() === '') {
   infoLog('Packages are complete.')
 } else {
   infoLog('A complete log of this run can be found in:')
   infoLog('    ' + cliPath + path.sep + logFileName)
-  fs.writeFileSync('./' + logFileName, logContent)
+  fs.writeFileSync('./' + logFileName, getLogContent())
 }

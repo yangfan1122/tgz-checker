@@ -1,30 +1,26 @@
-function compareVersion (newV, nowV) {
-  const newArr = newV.split('.')
-  const nowArr = nowV.split('.')
-  const minLength = Math.min(newArr.length, nowArr.length)
-  let position = 0
-  let diff = 0
-  while (position < minLength && ((diff = parseInt(newArr[position]) - parseInt(nowArr[position])) === 0)) {
-    position++
-  }
-  diff = diff !== 0 ? diff : newArr.length - nowArr.length
-  return diff > 0
-}
-
 function getVersionFromFileName (fileName) {
   const arr1 = fileName.split('.tgz')
   const arr2 = arr1[0].split('-')
   return arr2[arr2.length - 1]
 }
 
+let infoContent = ''
+let warnContent = ''
+let errorContent = ''
 function errorLog (...message) {
-  console.log('[Error]', messageHandler(...message))
+  let msg = '[Error] ' + messageHandler(...message)
+  infoContent += msg + '\r\n'
+  console.log(msg)
 }
 function warnLog (...message) {
-  console.warn('[Warn]', messageHandler(...message))
+  let msg = '[Warn] ' + messageHandler(...message)
+  warnContent += msg + '\r\n'
+  console.warn(msg)
 }
 function infoLog (...message) {
-  console.log('[Info]', messageHandler(...message))
+  const msg = '[Info] ' + messageHandler(...message)
+  errorContent += msg + '\r\n'
+  console.info(msg)
 }
 function messageHandler (...content) {
   let str = ''
@@ -35,10 +31,14 @@ function messageHandler (...content) {
   return str
 }
 
+function getLogContent () {
+  return infoContent + warnContent + errorContent
+}
+
 module.exports = {
-  compareVersion,
   getVersionFromFileName,
   errorLog,
   warnLog,
-  infoLog
+  infoLog,
+  getLogContent
 }

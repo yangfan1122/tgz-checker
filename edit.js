@@ -1,11 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const utils = require('./utils')
-const infoLog = utils.infoLog
-const warnLog = utils.warnLog
-const errorLog = utils.errorLog
 
-function editPackage (fullPath, editPackageJSON, logContent) {
+function editPackage (fullPath, editPackageJSON) {
+  let message = ''
   let packageContent = fs.readFileSync(fullPath, 'utf-8') // package.jsn内容
   packageContent = JSON.parse(packageContent)
   const packageName = packageContent.name // 包名
@@ -13,49 +11,61 @@ function editPackage (fullPath, editPackageJSON, logContent) {
   try {
     newest = packageContent['dist-tags']['latest']
   } catch (e) {
-    errorLog('No "dist-tags.latest" in ' + packageName)
-    return
+    message = 'No "dist-tags.latest" in ' + packageName
+    return {
+      code: 0,
+      message
+    }
   }
 
   const targetDirectory = fullPath.split(path.basename(fullPath))[0]
-  const contents = fs.readdirSync(targetDirectory) // 目标目录内所有文件
+  const contents = fs.readdirSync(targetDirectory) // 目标目录内所有文件，.tgz版本号按小到大顺序索引递增
   const packageIndex = contents.indexOf('package.json')
-  contents.splice(packageIndex, 1)
+  contents.splice(packageIndex, 1) // 去掉package.json，contents只包含.tgz文件
   const hasTgz = contents.some(c => path.extname(fullPath + path.sep + c) === '.tgz')
   if (!hasTgz) {
     let tgzMessage = 'No .tgz in ' + packageName
-    logContent += tgzMessage + '\r\n'
-    errorLog(tgzMessage)
+    message = tgzMessage
+    return {
+      code: 1,
+      message
+    }
   } else {
-    const hasVersion = contents.some(c => c.indexOf(newest) > -1)
-    if (!hasVersion) {
+    const hasNewest = contents.some(c => c.indexOf(newest) > -1)
+    if (!hasNewest) {
       // tgz文件里没有最新的
       if (editPackageJSON) {
         // 重写package.json
-        let first
-        let last
-        let newestTgz
         try {
-          first = contents[0]
-          last = contents[contents.length - 1]
-          newestTgz = utils.compareVersion(first, last) ? first : last
-          const newestTgzVersion = utils.getVersionFromFileName(newestTgz)
-          const editLog = 'Edit: ' + packageName + ' ' + newest + ' -> ' + newestTgzVersion
-          logContent += editLog + '\r\n'
-          infoLog(editLog)
+          const newestTgzVersion = utils.getVersionFromFileName(contents[contents.length - 1])
+          message = 'Edit: ' + packageName + ' ' + newest + ' -> ' + newestTgzVersion
           packageContent['dist-tags']['latest'] = newestTgzVersion
-          fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent))
+          fs.writeFileSync(targetDirectory + '/package.json', JSON.stringify(packageContent, null, 2))
+          return {
+            code: 1,
+            message
+          }
         } catch (e) {
-          warnLog(e.message)
+          return {
+            code: 0,
+            message: e.message
+          }
         }
 
       } else {
         // 文件里不包含最新版本
-        const versionMessage = 'No newest(' + newest + ') .tgz in ' + packageName
-        logContent += versionMessage + '\r\n'
-        errorLog(versionMessage)
+        message = 'No newest(' + newest + ') .tgz in ' + packageName
+        return {
+          code: -1,
+          message
+        }
       }
 
+    } else {
+      return {
+        code: 1,
+        message: ''
+      }
     }
   }
 }
