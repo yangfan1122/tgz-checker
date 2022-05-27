@@ -15,7 +15,7 @@ tgz
  ```
 tgz --edit
 ``` 
-命令行进入npm包所在目录，执行带有参数命令。脚本检查verdaccio/storage目录各个包，并将包内package.json的['dist-tags']['latest']值更改为最新tgz对应的版本。
+命令行进入npm包所在目录，执行带有参数命令。脚本检查verdaccio/storage目录各个包，并将包内package.json的['dist-tags']['latest']值更改为目录内现有tgz所对应的版本。
 <br><br>
 
 ```
