@@ -27,7 +27,7 @@ function editPackage (fullPath, editPackageJSON) {
     let tgzMessage = 'No .tgz in ' + packageName
     message = tgzMessage
     return {
-      code: 1,
+      code: -1,
       message
     }
   } else {
@@ -47,7 +47,7 @@ function editPackage (fullPath, editPackageJSON) {
           }
         } catch (e) {
           return {
-            code: 0,
+            code: -1,
             message: e.message
           }
         }
@@ -56,7 +56,7 @@ function editPackage (fullPath, editPackageJSON) {
         // 文件里不包含最新版本
         message = 'No newest(' + newest + ') .tgz in ' + packageName
         return {
-          code: -1,
+          code: 0,
           message
         }
       }
