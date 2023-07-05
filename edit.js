@@ -5,7 +5,16 @@ const utils = require('./utils')
 function editPackage (fullPath, editPackageJSON) {
   let message = ''
   let packageContent = fs.readFileSync(fullPath, 'utf-8') // package.jsn内容
-  packageContent = JSON.parse(packageContent)
+  try {
+    packageContent = JSON.parse(packageContent)
+  } catch (error) {
+    message = 'Invalid JSON in ' + fullPath
+    return {
+      code: -1,
+      message
+    }
+  }
+
   const packageName = packageContent.name // 包名
   let newest
   try {
